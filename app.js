@@ -61,17 +61,21 @@ client.on('message', (channel, tags, message, self) => {
 //default category will be any%
 async function getRecord(channel, message) {
     //search for gameid on speedrun.com from message input
-    //let splitMessage = message.split('*');
-    let game = message.split(' ');
+    let splitMessage = message.split('*');
+    let game = splitMessage[0].split(' ');
+    let category = splitMessage[1].split(' ');
+    category.shift();
+    category = category.join('_');
     game = game.join('%20');
     console.log(game);
+    console.log(category);
     let gameIdResponse = await fetch("https://www.speedrun.com/api/v1/games?name=" + game);
     let gameIdData =  await gameIdResponse.json();
-    console.log(gameIdData);
+    //console.log(gameIdData);
     let gameId = gameIdData.data[0].id;
-    console.log(gameId);
+    //console.log(gameId);
     //find world record for input game
-    let response = await fetch("https://www.speedrun.com/api/v1/leaderboards/" + gameId + "/category/any?top=1");
+    let response = await fetch("https://www.speedrun.com/api/v1/leaderboards/" + gameId + "/category/" + category + "?top=1");
     let data = await response.json();
     let recordString = buildRecord(data);
     console.log(recordString);
@@ -82,6 +86,7 @@ async function getRecord(channel, message) {
 //builds and returns the string that will be returned by the bot on !wr
 //should know/get game name, category queried, and runner who got record
 function buildRecord(data){
+    //console.log(data);
     let timeInSec = data.data.runs[0].run.times.primary_t;
     let hours = Math.floor(timeInSec / 60 / 60);
     let minutes = Math.floor(timeInSec / 60) - (hours * 60);
@@ -91,7 +96,7 @@ function buildRecord(data){
     let secondString = '';
     if(minutes <= 9) minuteString = '0';
     if(seconds <= 9) secondString = '0';
-
+    //World record for *game *category is *time by *username
     let record = 'World Record is ' + hours + ':' + minuteString + minutes + ':' + secondString + seconds;
     return record;
 }
